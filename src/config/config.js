@@ -36,7 +36,7 @@ module.exports = {
   env: envVars.NODE_ENV,
   port: envVars.PORT,
   mysql: {
-    database: process.env.MYSQL_DATABASE || 'instilite_2024_25',
+    database: process.env.MYSQL_DATABASE || 'instilite_24',
     username: process.env.MYSQL_USERNAME || 'root',
     password: process.env.MYSQL_PASSWORD || '',
     host: process.env.MYSQL_HOST || 'localhost',

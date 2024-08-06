@@ -1,3 +1,5 @@
+//CONTROLLER INDEX
+
 module.exports.authController = require('./auth.controller');
 module.exports.userController = require('./user.controller');
-module.exports.clubController = require('./clubs.controller');
+module.exports.eventController = require('./event.controller');
