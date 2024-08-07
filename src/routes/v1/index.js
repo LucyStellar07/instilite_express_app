@@ -3,6 +3,7 @@ const express = require('express');
 const authRoute = require('./auth.route');
 const userRoute = require('./user.route');
 const docsRoute = require('./docs.route');
+const clubRoute = require('./clubs.route');
 const eventRoute = require('./event.route');
 const config = require('../../config/config');
 
@@ -16,6 +17,10 @@ const defaultRoutes = [
   {
     path: '/users',
     route: userRoute,
+  },
+  {
+    path: '/clubs',
+    route: clubRoute,
   },
   {
     path: '/events',

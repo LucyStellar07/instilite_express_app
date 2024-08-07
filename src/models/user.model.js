@@ -1,91 +1,55 @@
-const mongoose = require('mongoose');
-const validator = require('validator');
-const bcrypt = require('bcryptjs');
-const { toJSON, paginate } = require('./plugins');
-const { roles } = require('../config/roles');
+const { Sequelize, DataTypes } = require('sequelize');
+const config = require('../config/config');
 
-const userSchema = mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
-      lowercase: true,
-      validate(value) {
-        if (!validator.isEmail(value)) {
-          throw new Error('Invalid email');
-        }
-      },
-    },
-    password: {
-      type: String,
-      required: true,
-      trim: true,
-      minlength: 8,
-      validate(value) {
-        if (!value.match(/\d/) || !value.match(/[a-zA-Z]/)) {
-          throw new Error('Password must contain at least one letter and one number');
-        }
-      },
-      private: true, // used by the toJSON plugin
-    },
-    role: {
-      type: String,
-      enum: roles,
-      default: 'user',
-    },
-    isEmailVerified: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  {
-    timestamps: true,
-  }
-);
-
-// add plugin that converts mongoose to json
-userSchema.plugin(toJSON);
-userSchema.plugin(paginate);
-
-/**
- * Check if email is taken
- * @param {string} email - The user's email
- * @param {ObjectId} [excludeUserId] - The id of the user to be excluded
- * @returns {Promise<boolean>}
- */
-userSchema.statics.isEmailTaken = async function (email, excludeUserId) {
-  const user = await this.findOne({ email, _id: { $ne: excludeUserId } });
-  return !!user;
-};
-
-/**
- * Check if password matches the user's password
- * @param {string} password
- * @returns {Promise<boolean>}
- */
-userSchema.methods.isPasswordMatch = async function (password) {
-  const user = this;
-  return bcrypt.compare(password, user.password);
-};
-
-userSchema.pre('save', async function (next) {
-  const user = this;
-  if (user.isModified('password')) {
-    user.password = await bcrypt.hash(user.password, 8);
-  }
-  next();
+// Initialize Sequelize with database configuration
+const sequelize = new Sequelize(config.mysql.database, config.mysql.username, config.mysql.password, {
+  host: config.mysql.host,
+  dialect: 'mysql',
+  logging: false,
 });
 
-/**
- * @typedef User
- */
-const User = mongoose.model('User', userSchema);
+// Define the User model to match the users table
+const User = sequelize.define('User', {
+  user_id: {
+    type: DataTypes.STRING(20),
+    allowNull: false,
+    primaryKey: true,
+  },
+  username: {
+    type: DataTypes.STRING(10),
+    allowNull: false,
+  },
+  pass_word: {
+    type: DataTypes.STRING(20),
+    allowNull: false,
+  },
+  role: {
+    type: DataTypes.ENUM('0', '1'),
+    allowNull: false,
+  },
+  smail: {
+    type: DataTypes.STRING(25),
+    allowNull: false,
+  },
+  events_attended: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    defaultValue: null,
+  },
+  created_at: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+  },
+  updated_at: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+  },
+}, {
+  tableName: 'users',
+  timestamps: false, // Since created_at and updated_at are manually managed
+  underscored: true, // If you want to match the snake_case naming convention
+});
 
 module.exports = User;

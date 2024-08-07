@@ -1,43 +1,79 @@
-/*
-app.get('/readteamprofile/:club_name', (req, res) => {
-    const club_name = req.params.club_name;
-    console.log(club_name);
-    const teamQuery = "SELECT * FROM club WHERE club_name = ?";
-    db.query(teamQuery, [club_name], (err, results) => {
-        if (err) {
-            console.error("Error executing SQL query:", err);
-            return res.status(500).json({ error: "Internal server error" });
-        }
-        if (results.length === 0) {
-            return res.status(404).json({ error: 'User profile not found' });
-        }
-        res.status(200).json(results);
-    });
-});
-*/
+const Club = require('../models/clubs.model'); // Adjust the path to your model
+const Event = require('../models/event.model'); // Adjust the path to your model
+const config = require('../config/config');
 
-// controller.js
+const { Sequelize, DataTypes } = require('sequelize');
+const sequelize = new Sequelize(config.mysql.database, config.mysql.username, config.mysql.password, {
+    host: config.mysql.host,
+    dialect: 'mysql',
+    logging: false,
+  });
+
+
+//view club profile details!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 const getTeamProfile = async (req, res) => {
   const clubName = req.params.club_name;
   console.log("hello");
+  console.log("first get");
 
-  const [rows] = await db.query('SELECT * FROM club WHERE club_name = ?', [clubName]);
-  if (rows.length === 0) {
-    return res.status(404).json({ error: 'club profile not found' });
-  }
-  res.send(rows)
-};
-
-module.exports = {
-  getTeamProfile,
-};
-
-/*
-const getUser = catchAsync(async (req, res) => {
-    const user = await userService.getUserById(req.params.userId);
-    if (!user) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  try {
+    const club = await Club.findAll({ where: { club_name: clubName } });
+    console.log(club);
+    if (!club) {
+      return res.status(404).json({ error: 'Club profile not found' });
     }
-    res.send(user);
-  });
-*/
+    res.json(club);
+  } catch (error) {
+    console.error('Error fetching club profile:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+//what's new apps!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+const whatsnew_apps = async (req, res) => {
+  console.log("hello");
+  console.log("HI");
+
+  try {
+    const results = await sequelize.query(
+      "SELECT club_name, club_apps FROM club WHERE updated_at >= NOW() - INTERVAL 24 HOUR",
+      {
+        type: sequelize.QueryTypes.SELECT
+      }
+    );
+
+    res.json(results);
+  } catch (error) {
+    console.error('Error fetching whats new for clubs:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+//club wise upcoming events!!!!!!!!!!!!!!!!!!!!
+const upcoming_events = async (req, res) => {
+    const club = req.query.club;
+    if (!club) {
+        return res.status(400).json({ error: 'Club parameter is required' });
+    }
+
+    try {
+        const currentTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        const results = await sequelize.query(
+            `SELECT event_id, event_name, event_details, start_time, end_time, venue
+             FROM events
+             WHERE created_by = :club AND start_time > :currentTime AND event_type = 'GSB'`,
+            {
+                replacements: { club, currentTime },
+                type: sequelize.QueryTypes.SELECT
+            }
+        );
+
+        res.json(results);
+    } catch (error) {
+        console.error('Error fetching upcoming events:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+
+module.exports = { getTeamProfile, whatsnew_apps, upcoming_events };

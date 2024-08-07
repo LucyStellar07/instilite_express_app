@@ -1,43 +1,59 @@
-const httpStatus = require('http-status');
-const pick = require('../utils/pick');
-const ApiError = require('../utils/ApiError');
+// src/controllers/user.controller.js
+
+const { Sequelize } = require('sequelize');
+const sequelize = require('../config/config.js'); // Make sure this path is correct
+const User = require('../models/user.model');
 const catchAsync = require('../utils/catchAsync');
-const { userService } = require('../services');
 
-const createUser = catchAsync(async (req, res) => {
-  const user = await userService.createUser(req.body);
-  res.status(httpStatus.CREATED).send(user);
-});
+const user_login = catchAsync(async (req, res) => {
+  const { user_id, password } = req.body;
 
-const getUsers = catchAsync(async (req, res) => {
-  const filter = pick(req.query, ['name', 'role']);
-  const options = pick(req.query, ['sortBy', 'limit', 'page']);
-  const result = await userService.queryUsers(filter, options);
-  res.send(result);
-});
-
-const getUser = catchAsync(async (req, res) => {
-  const user = await userService.getUserById(req.params.userId);
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  if (!user_id || !password) {
+    return res.status(400).json({ message: 'user_id and password are required' });
   }
-  res.send(user);
+
+  try {
+    const user = await User.findOne({ where: { user_id } });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid user_id' });
+    }
+
+    if (user.pass_word !== password) {
+      return res.status(400).json({ message: 'Invalid username or password' });
+    }
+
+    res.json({ message: 'Login successful' });
+  } catch (error) {
+    console.error('Error querying the database:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
-const updateUser = catchAsync(async (req, res) => {
-  const user = await userService.updateUserById(req.params.userId, req.body);
-  res.send(user);
-});
+const user_signup = catchAsync(async (req, res) => {
+  const { username, pass_word, role, smail, user_id, events_attended } = req.body;
 
-const deleteUser = catchAsync(async (req, res) => {
-  await userService.deleteUserById(req.params.userId);
-  res.status(httpStatus.NO_CONTENT).send();
+  if (!username || !pass_word || !role || !smail || !user_id) {
+    return res.status(400).json({ message: 'Username, password, role, email, and roll_number are required' });
+  }
+
+  try {
+    const existingUser = await User.findOne({ where: { user_id } });
+
+    if (existingUser) {
+      return res.status(400).json({ message: 'Roll number already exists' });
+    }
+
+    const newUser = await User.create({ username, pass_word, role, smail, user_id, events_attended });
+
+    res.status(201).json({ message: 'User registered successfully', user_id: newUser.user_id });
+  } catch (error) {
+    console.error('Error creating user:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 module.exports = {
-  createUser,
-  getUsers,
-  getUser,
-  updateUser,
-  deleteUser,
+  user_login,
+  user_signup,
 };

@@ -1,4 +1,3 @@
-//EVENT MODEL
 const config = require('../config/config');
 const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = new Sequelize(config.mysql.database, config.mysql.username, config.mysql.password, {
@@ -18,7 +17,7 @@ const Event = sequelize.define('Event', {
     allowNull: false
   },
   event_type: {
-    type: DataTypes.ENUM('GSB', 'personal'),
+    type: DataTypes.STRING(20),
     allowNull: false
   },
   event_details: {
@@ -59,4 +58,3 @@ const Event = sequelize.define('Event', {
 });
 
 module.exports = Event;
-
