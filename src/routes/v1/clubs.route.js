@@ -1,10 +1,13 @@
 const express = require('express');
+const validate = require('../../middlewares/validate');
+const clubsValidation = require('../../validations/auth.validation');
 const clubsController = require('../../controllers/clubs.controller');
+//const auth = require('../../middlewares/auth');
 const router = express.Router();
 
 router
     .route('/read_club/:club_name')
-    .get(clubsController.getTeamProfile);
+    .get(validate(clubsValidation.getClubs), clubsController.getTeamProfile);
 
 router
     .route('/')

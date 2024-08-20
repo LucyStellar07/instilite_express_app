@@ -1,6 +1,8 @@
 const Club = require('../models/clubs.model'); // Adjust the path to your model
 const Event = require('../models/event.model'); // Adjust the path to your model
 const config = require('../config/config');
+const clubService = require('../services/clubs.service'); // Adjust the path to your model
+const catchAsync = require('../utils/catchAsync')
 
 const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = new Sequelize(config.mysql.database, config.mysql.username, config.mysql.password, {
@@ -9,25 +11,34 @@ const sequelize = new Sequelize(config.mysql.database, config.mysql.username, co
     logging: false,
   });
 
-
-//view club profile details!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-const getTeamProfile = async (req, res) => {
-  const clubName = req.params.club_name;
-  console.log("hello");
-  console.log("first get");
-
-  try {
-    const club = await Club.findAll({ where: { club_name: clubName } });
-    console.log(club);
-    if (!club) {
-      return res.status(404).json({ error: 'Club profile not found' });
-    }
-    res.json(club);
-  } catch (error) {
-    console.error('Error fetching club profile:', error);
-    res.status(500).json({ error: 'Internal server error' });
+//modified club profile controller
+const getTeamProfile = catchAsync(async (req, res) => {
+  const club = await clubService.getClubProfile(req.params.club_name);
+  if (!club) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Club not found');
   }
-};
+  res.send(club);
+});
+
+
+// //view club profile details!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// const getTeamProfile = async (req, res) => {
+//   const clubName = req.params.club_name;
+//   console.log("hello");
+//   console.log("first get");
+
+//   try {
+//     const club = await Club.findAll({ where: { club_name: clubName } });
+//     console.log(club);
+//     if (!club) {
+//       return res.status(404).json({ error: 'Club profile not found' });
+//     }
+//     res.json(club);
+//   } catch (error) {
+//     console.error('Error fetching club profile:', error);
+//     res.status(500).json({ error: 'Internal server error' });
+//   }
+// };
 
 //what's new apps!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 const whatsnew_apps = async (req, res) => {
