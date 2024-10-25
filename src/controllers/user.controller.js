@@ -1,7 +1,7 @@
 // src/controllers/user.controller.js
 
-const { Sequelize } = require('sequelize');
-const sequelize = require('../config/config.js'); // Make sure this path is correct
+// const { Sequelize } = require('sequelize');
+// const sequelize = require('../config/config.js'); // Make sure this path is correct
 const User = require('../models/user.model');
 const catchAsync = require('../utils/catchAsync');
 
@@ -25,7 +25,7 @@ const user_login = catchAsync(async (req, res) => {
 
     res.json({ message: 'Login successful' });
   } catch (error) {
-    console.error('Error querying the database:', error);
+    //console.error('Error querying the database:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -48,7 +48,7 @@ const user_signup = catchAsync(async (req, res) => {
 
     res.status(201).json({ message: 'User registered successfully', user_id: newUser.user_id });
   } catch (error) {
-    console.error('Error creating user:', error);
+    //console.error('Error creating user:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
