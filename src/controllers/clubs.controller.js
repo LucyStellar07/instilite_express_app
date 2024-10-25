@@ -62,28 +62,28 @@ const whatsnew_apps = async (req, res) => {
 
 //club wise upcoming events!!!!!!!!!!!!!!!!!!!!
 const upcoming_events = async (req, res) => {
-    const club = req.query.club;
-    if (!club) {
-        return res.status(400).json({ error: 'Club parameter is required' });
-    }
+  const club = req.query.club;
+  if (!club) {
+      return res.status(400).json({ error: 'Club parameter is required' });
+  }
 
-    try {
-        const currentTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
-        const results = await sequelize.query(
-            `SELECT event_id, event_name, event_details, start_time, end_time, venue
-             FROM events
-             WHERE created_by = :club AND start_time > :currentTime AND event_type = 'GSB'`,
-            {
-                replacements: { club, currentTime },
-                type: sequelize.QueryTypes.SELECT
-            }
-        );
+  try {
+      const currentTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
+      const results = await sequelize.query(
+          `SELECT event_id, event_name, event_details, start_time, end_time, venue, created_by
+           FROM events
+           WHERE created_by = :club AND start_time > :currentTime AND event_type = 'GSB'`,
+          {
+              replacements: { club, currentTime },
+              type: sequelize.QueryTypes.SELECT
+          }
+      );
 
-        res.json(results);
-    } catch (error) {
-        console.error('Error fetching upcoming events:', error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
+      res.json(results);
+  } catch (error) {
+      console.error('Error fetching upcoming events:', error);
+      res.status(500).json({ error: 'Internal server error' });
+  }
 };
 
 
