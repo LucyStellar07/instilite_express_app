@@ -6,21 +6,21 @@ const User = require('../models/user.model');
 const catchAsync = require('../utils/catchAsync');
 
 const user_login = catchAsync(async (req, res) => {
-  const { user_id, password } = req.body;
+  const { smail, password } = req.query;
 
-  if (!user_id || !password) {
-    return res.status(400).json({ message: 'user_id and password are required' });
+  if (!smail || !password) {
+    return res.status(400).json({ message: 'smail and password are required' });
   }
 
   try {
-    const user = await User.findOne({ where: { user_id } });
+    const user = await User.findOne({ where: { smail } });
 
     if (!user) {
-      return res.status(400).json({ message: 'Invalid user_id' });
+      return res.status(400).json({ message: 'Invalid smail' });
     }
 
     if (user.pass_word !== password) {
-      return res.status(400).json({ message: 'Invalid username or password' });
+      return res.status(400).json({ message: 'Invalid smail or password' });
     }
 
     res.json({ message: 'Login successful' });
